@@ -2,22 +2,29 @@
 installDir='/usr/share/sangfor/EasyConnect'
 shortcutFile='/usr/share/applications/EasyConnect.desktop'
 
-
-if [ ! -d "${installDir}" ]; then # check installation
+#check installation
+if [ ! -d "${installDir}" ]; then 
+	# file not exist
 	echo "fatal: ${installDir} not found, check your installation. Existing..."
-	return 1 # file not exist
+	return 1 
 else 
 	echo "found ${installDir}."
 fi
-if [ -e "${installDir}/RunEasyConnect.sh" ]; then # patch file already existed
+
+#check patch file existence
+if [ -e "${installDir}/RunEasyConnect.sh" ]; then 
+	#patch file already existed
 	echo "warning: patch file ${installDir}/RunEasyConnect.sh found, already patched. Existing..."
-	return 1 # file not exist
-else 
+	return 1 
+else #file not exist
 	echo "patch file ${installDir}/RunEasyConnect.sh doesn't exist, not patched yet."
+
 	# get user password
 	echo "info: Permission required. "
 	echo "Enter your password for sudo:"
 	read key
+
+	#copy patch file
 	echo "copying file..."
 	echo ${key}|sudo -S cp -R ./patch/* ${installDir}/
 	
