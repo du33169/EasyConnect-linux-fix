@@ -1,4 +1,8 @@
 #!/usr/bin/sh
+
+#description: this script fix EasyConnect on linux
+#author:du33169
+
 installDir='/usr/share/sangfor/EasyConnect'
 shortcutFile='/usr/share/applications/EasyConnect.desktop'
 

@@ -1,4 +1,8 @@
 #!/bin/sh
+
+#description: this script run EasyConnect and handle error about sslservice
+#author:du33169
+
 echo "info: make sure this script is running under sudo!"
 
 #check if EasyMonitor is running
