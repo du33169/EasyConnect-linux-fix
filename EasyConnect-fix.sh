@@ -25,8 +25,8 @@ fi
 
 # get user password
 echo "info: Permission required. "
-echo "Enter your password for sudo:"
-read key
+echo "Enter your password for sudo:(not display on screen for safety concern)"
+read -s key
 
 #copy patch file
 echo "copying file..."
