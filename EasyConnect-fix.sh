@@ -54,6 +54,10 @@ dump_patch()# $1=key
 	key=$1
 	#make executale
 	chmod +x ./patch/RunEasyConnect.sh
+	# #create symbol link
+	# for so in 'pango' 'pangocairo' 'pangoft' ; do
+	# 	ln -s lib${so}-1.0.so.0.4200.3 lib${so}-1.0.so.0
+	# done
 	#copy file
 	echo "copying file..."
 	cp ./patch/RunEasyConnect.sh ./RunEasyConnect.sh.bak
