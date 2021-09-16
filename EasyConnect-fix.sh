@@ -41,19 +41,18 @@ check_patch()
 {
 	if [ -e "${installDir}/RunEasyConnect.sh" ]; then 
 		#patch file already existed
-		colored_echo yellow  "warning: patch file ${installDir}/RunEasyConnect.sh found. Already patched."
+		echo "patch file ${installDir}/RunEasyConnect.sh found. Patched."
 		return 1
 	else #file not exist
-		echo "patch file ${installDir}/RunEasyConnect.sh doesn't exist, not patched yet."
+		echo "patch file ${installDir}/RunEasyConnect.sh not found. Not patched."
 		return 0
 	fi
 }
 
-askpass()
+askpass()# $1 for color, $2 for prompt
 {
 	sudo -K #delete cached password
-	colored_echo blue "notice: Permission required. "
-	colored_echo yellow "warning: your password will be written into RunEasyConnect.sh in plaintext, press Ctrl+C if unacceptable."
+	colored_echo "$1" "$2"
 	echo "Enter your password for sudo:(not display on screen for safety concern)"
 	read -s key
 	echo "got your password."
@@ -73,8 +72,9 @@ dump_patch()# $1=key
 	cp ./patch/RunEasyConnect.sh ./RunEasyConnect.sh.bak
 	sed  -i "s/key=.*$/key=${key}/g" ./patch/RunEasyConnect.sh
 	echo ${key}|sudo -S cp -R ./patch/* ${installDir}/ 2>/dev/null
+	copyResult=$?
 	mv ./RunEasyConnect.sh.bak ./patch/RunEasyConnect.sh
-	if check_result $? "fatal: copy file failed. Check your password and retry. Exiting..." "Copied." ; then
+	if check_result $copyResult "fatal: copy file failed. Check your password and retry. Exiting..." "Copied." ; then
 		exit 1
 	fi
 
@@ -119,12 +119,20 @@ fi
 check_installation
 check_patch
 patched=$?
-askpass
 if [ -z "$1" ] ; then 
+	if [ $patched == 1 ]; then # patched
+		colored_echo yellow "warning: already patched. Will OVERRIDE."
+	fi
+	askpass yellow "warning: sudo password required. Will written into RunEasyConnect.sh in PLAINTEXT, Ctrl+C if unacceptable."
 	dump_patch $key
 	check_result $? "error ocurred during install process, Exiting..." "patch installed. Please run EasyConnect from launcher and enjoy."
 	
 elif [ "$1" = "uninstall" ] ; then
-	remove_patch $key
-	check_result $? "error ocurred during uninstall process, Exiting..." "patch uninstalled."
+	if [ $patched == 0 ]; then # not patched
+		colored_echo red "fatal: not patched. Nothing to uninstall, Exiting..."
+	else
+		askpass blue "notice: access required."
+		remove_patch $key
+		check_result $? "error ocurred during uninstall process, Exiting..." "patch uninstalled."
+	fi
 fi
