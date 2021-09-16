@@ -7,13 +7,22 @@ installDir='/usr/share/sangfor/EasyConnect'
 regInstallDir=$(echo $installDir|sed 's/\//\\\//g')	# replace '/' with '\/' for regular expression
 shortcutFile='/usr/share/applications/EasyConnect.desktop'
 
+colored_echo()# $1 for color, $2 for text
+{
+	case $1 in
+		"yellow")	echo -e "\033[33m$2\033[0m"		;;
+		"red")		echo -e "\033[31m$2\033[0m"		;;
+		"blue")		echo -e "\033[34m$2\033[0m"		;;
+		*)			echo "$2"						;;
+	esac
+}
 check_result()#$1=$?, $2=failed_text $3=success_text,
 {
 	if test $1 -ne 0 ; then 
-		echo $2
+		colored_echo red "$2"
 		return 0 #true
 	else 
-		echo $3
+		echo "$3"
 		return 1 #false
 	fi
 }
@@ -21,7 +30,7 @@ check_installation()
 {
 	if [ ! -d "${installDir}" ]; then 
 		# file not exist
-		echo "fatal: ${installDir} not found, check your EasyConnect installation. Exiting..."
+		colored_echo red "fatal: ${installDir} not found, check your EasyConnect installation. Exiting..."
 		exit 1 
 	else 
 		echo "found ${installDir}."
@@ -32,7 +41,7 @@ check_patch()
 {
 	if [ -e "${installDir}/RunEasyConnect.sh" ]; then 
 		#patch file already existed
-		echo "warning: patch file ${installDir}/RunEasyConnect.sh found."
+		colored_echo yellow  "warning: patch file ${installDir}/RunEasyConnect.sh found. Already patched."
 		return 1
 	else #file not exist
 		echo "patch file ${installDir}/RunEasyConnect.sh doesn't exist, not patched yet."
@@ -43,7 +52,8 @@ check_patch()
 askpass()
 {
 	sudo -K #delete cached password
-	echo "notice: Permission required. "
+	colored_echo blue "notice: Permission required. "
+	colored_echo yellow "warning: your password will be written into RunEasyConnect.sh in plaintext, press Ctrl+C if unacceptable."
 	echo "Enter your password for sudo:(not display on screen for safety concern)"
 	read -s key
 	echo "got your password."
@@ -72,7 +82,7 @@ dump_patch()# $1=key
 	#edit shortcut
 	if [ ! -e "${shortcutFile}" ]; then
 		# file not exist
-		echo "fatal: ${shortcutFile} not found, check your installation."
+		colored_echo red "fatal: ${shortcutFile} not found, check your installation."
 		echo "Or you could just use ${installDir}/RunEasyConnect.sh. Exiting..."
 		exit 1 
 	else 
