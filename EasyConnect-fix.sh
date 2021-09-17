@@ -28,6 +28,7 @@ check_result()#$1=$?, $2=failed_text $3=success_text,
 }
 check_installation()
 {
+	colored_echo blue "Checking EasyConnect installation..."
 	if [ ! -d "${installDir}" ]; then 
 		# file not exist
 		colored_echo red "fatal: ${installDir} not found, check your EasyConnect installation. Exiting..."
@@ -39,12 +40,13 @@ check_installation()
 
 check_patch()
 {
+	colored_echo blue  "Checking patch installation..."
 	if [ -e "${installDir}/RunEasyConnect.sh" ]; then 
 		#patch file already existed
-		echo "patch file ${installDir}/RunEasyConnect.sh found. Patched."
+		echo "Patch file ${installDir}/RunEasyConnect.sh found. Patched."
 		return 1
 	else #file not exist
-		echo "patch file ${installDir}/RunEasyConnect.sh not found. Not patched."
+		echo "Not patched."
 		return 0
 	fi
 }
@@ -60,6 +62,7 @@ askpass()# $1 for color, $2 for prompt
 
 dump_patch()# $1=key
 {
+	colored_echo blue "Patching..."
 	key=$1
 	#make executale
 	chmod +x ./patch/RunEasyConnect.sh
@@ -68,7 +71,7 @@ dump_patch()# $1=key
 	# 	ln -s lib${so}-1.0.so.0.4200.3 lib${so}-1.0.so.0
 	# done
 	#copy file
-	echo "copying file..."
+	echo "Copying file..."
 	cp ./patch/RunEasyConnect.sh ./RunEasyConnect.sh.bak
 	sed  -i "s/key=.*$/key=${key}/g" ./patch/RunEasyConnect.sh
 	echo ${key}|sudo -S cp -R ./patch/* ${installDir}/ 2>/dev/null
@@ -80,13 +83,14 @@ dump_patch()# $1=key
 
 	
 	#edit shortcut
+	echo "Editing shortcut..."
 	if [ ! -e "${shortcutFile}" ]; then
 		# file not exist
 		colored_echo red "fatal: ${shortcutFile} not found, check your installation."
 		echo "Or you could just use ${installDir}/RunEasyConnect.sh. Exiting..."
 		exit 1 
 	else 
-		echo "found shortcut file ${shortcutFile}, updating..."
+		echo "Found ${shortcutFile}..."
 		# modifying .desktop file
 		echo ${key}|sudo -S sed  -i "s/Exec=.*$/Exec=${regInstallDir}\/RunEasyConnect.sh/g" $shortcutFile 2>/dev/null
 		if check_result $? "fatal: modification failed. Check your password/installation and retry. Exiting..." "Edited."; then 
@@ -97,15 +101,16 @@ dump_patch()# $1=key
 }
 remove_patch()# $1=key
 {
+	colored_echo blue "Removing patch..."
 	key=$1
 	for file in `ls ./patch`; do
 		echo ${key}|sudo -S rm ${installDir}/${file} 2>/dev/null
-		if check_result $? "fatal: deleted failed. Check your password/installation and retry. Exiting..." "deleted ${file}"; then 
+		if check_result $? "fatal: failed to delete. Check your password/installation and retry. Exiting..." "deleted ${file}"; then 
 			exit 1
 		fi
 	done
 	echo ${key}|sudo -S sed  -i "s/Exec=.*$/Exec=${regInstallDir}\/EasyConnect/g" $shortcutFile 2>/dev/null
-	if check_result $? "fatal: edit failed. Check your password/installation and retry. Exiting..." "shortcut recovered."; then 
+	if check_result $? "fatal: failed to edit. Check your password/installation and retry. Exiting..." "Shortcut recovered."; then 
 		exit 1
 	fi
 	return 0
@@ -113,7 +118,7 @@ remove_patch()# $1=key
 
 # main process
 if [[ -n "$1" && "$1" != "uninstall" ]] ; then 
-	echo "unrecognized param $1, Exiting..."
+	echo "Unrecognized param $1. Exiting..."
 	exit 1
 fi
 check_installation
@@ -125,7 +130,7 @@ if [ -z "$1" ] ; then
 	fi
 	askpass yellow "warning: sudo password required. Will written into RunEasyConnect.sh in PLAINTEXT, Ctrl+C if unacceptable."
 	dump_patch $key
-	check_result $? "error ocurred during install process, Exiting..." "patch installed. Please run EasyConnect from launcher and enjoy."
+	colored_echo blue "Patch installed. Please run EasyConnect from launcher and enjoy."
 	
 elif [ "$1" = "uninstall" ] ; then
 	if [ $patched == 0 ]; then # not patched
@@ -133,6 +138,6 @@ elif [ "$1" = "uninstall" ] ; then
 	else
 		askpass blue "notice: access required."
 		remove_patch $key
-		check_result $? "error ocurred during uninstall process, Exiting..." "patch uninstalled."
+		colored_echo blue "Patch uninstalled."
 	fi
 fi
