@@ -2,11 +2,11 @@
 
 ## 简介
 
-linux版本的EasyConnect安装后无法直接使用，本项目在安装基础上进行修改，以使其能够正常运行。
+部分linux版本的EasyConnect安装后无法直接使用，本项目在安装基础上进行修改，以使其能够运行。
 
 ## 使用
 
-### 安装EasyConnect
+### 第一步：安装EasyConnect
 
 正常安装你的学校/公司/组织对应版本的EasyConnect并**尝试启动**。
 
@@ -18,12 +18,22 @@ linux版本的EasyConnect安装后无法直接使用，本项目在安装基础�
 
 （安装后版本可在 `/usr/share/sangfor/EasyConnect/resources/conf/version.xml`中查看）
 
-### 安装补丁
+### 第二步：安装补丁
 
-在合适位置进行执行操作：
+执行前确保已经安装了git和bash。
+
+之后在合适位置终端执行如下操作：
 
 ```bash
 git clone https://github.com/du33169/EasyConnect-linux-fix.git
+cd EasyConnect-linux-fix
+bash ./EasyConnect-fix.sh
+```
+
+对于中国大陆用户，也可使用gitee上的镜像：
+
+```bash
+git clone https://gitee.com/du33169/EasyConnect-linux-fix.git
 cd EasyConnect-linux-fix
 bash ./EasyConnect-fix.sh
 ```
@@ -34,13 +44,15 @@ bash ./EasyConnect-fix.sh
 - 访问和修改EasyConnect启动器.desktop文件
 - 提供EasyMonitor等程序需要的权限
 
-完成后可正常使用启动器快捷方式启动EasyConnect。
-
 **安全警告**：询问用户得到的**sudo密码**将**以明文**写入/usr/share/sangfor/EasyConnect/RunEasyConnect.sh以避免每次启动EasyConnect时终端询问密码。如果有安全需求请**谨慎使用**。
+
+### 第三步：运行EasyConnect
+
+完成后可正常使用**启动器快捷方式**启动EasyConnect。
 
 ### 卸载
 
-在执行脚本的同时传入uninstall参数即可卸载补丁。
+如果需要卸载补丁，可使用uninstall参数执行安装脚本：
 
 ```bash
 bash ./EasyConnect-fix.sh uninstall
@@ -54,11 +66,11 @@ bash ./EasyConnect-fix.sh uninstall
 
 ### 第一步：解决依赖问题
 
-根据DotIN13[这篇博客](https://www.wannaexpresso.com/2020/06/07/easy-connect-manjaro/)，将[libpango](https://packages.debian.org/buster/libpango-1.0-0)、[libpangocairo](https://packages.debian.org/buster/libpangocairo-1.0-0)、[libpangoft](https://packages.debian.org/buster/libpangoft2-1.0-0)版本1.0的软件包中EasyConnect需要的运行库`data.tar.xz/usr/lib/x86_64-linux-gnu/*.so.0.4200.3`以及`*.so.0`提取，并直接复制到EasyConnect的安装目录下即可解决依赖问题（复制操作需要权限）。
+根据DotIN13[这篇博客](https://www.wannaexpresso.com/2020/06/07/easy-connect-manjaro/)，EasyConnect正常运行需要[libpango](https://packages.debian.org/buster/libpango-1.0-0)、[libpangocairo](https://packages.debian.org/buster/libpangocairo-1.0-0)、[libpangoft](https://packages.debian.org/buster/libpangoft2-1.0-0)软件包的1.0版本，与系统安装的版本不符。通过下载软件包并将其中中EasyConnect需要的运行库`data.tar.xz/usr/lib/x86_64-linux-gnu/*.so.0.4200.3`以及`*.so.0`提取，并直接复制到EasyConnect的安装目录下即可解决依赖问题（复制操作需要权限）。
 
-**需要指出**的是，其中的\*.so.0.4200.3文件是真正的运行库，而\*.so.0则是指向对应运行库的**软链接**。为了方便安装，在本项目中，需要的动态库已经位于patch目录下。
+**需要指出**的是，其中的\*.so.0.4200.3文件是真正的运行库，而同名的\*.so.0则是指向对应运行库的**软链接**。在本项目中，需要的动态库已经位于patch目录下。
 
-考虑到软链接在压缩、git拉取等操作时很容易失效，并且指向的只是同一目录下的库文件，本项目附带的patch目录中**直接将各个\*.so.0.4200.3重命名为对应\*.so.0**。
+考虑到软链接在压缩、git拉取等操作时很容易失效，并且指向的只是同一目录下的库文件，本项目附带的patch目录中**直接将各个\*.so.0.4200.3重命名为对应\*.so.0**。这样就不需要使用软链接。
 
 ### 第二步：解决sslservice启动问题
 
@@ -68,11 +80,9 @@ patch中的**RunEasyConnect.sh**即解决上述问题的辅助启动脚本，以
 
 **关于最后while循环的笔记**：经过实验sslservice只需启动一次，无需重复；但RunEasyConnect.sh在启动ssl服务后需要等待EasyConnect主进程结束，否则会造成闪退。常用的`wait`命令未起效果，此处暂时采用while循环检测EasyConnect进程并sleep的方法。
 
-### 第三步：启动器修改
+### 第三步：修改.desktop文件
 
-EasyConnect的启动器文件安装至 `/usr/share/applications/EasyConnect.desktop`，为了简化启动EasyConnect时的操作，fix脚本修改该文件并将执行前述辅助启动脚本的命令写入（修改操作需要权限），这样就可用启动器以常规方式启动EasyConnect，无需终端操作。
-
-**安全警告**：RunEasyConnect.sh**需要root权限**运行EasyConnect的某些脚本（即使用sudo），目前的fix脚本在修改启动器文件时将询问用户得到的**sudo密码**一并**以明文**写入RunEasyConnect.sh以避免每次启动时终端询问密码。如果有安全需求请**谨慎使用**。
+EasyConnect的启动器文件安装至 `/usr/share/applications/EasyConnect.desktop`，为了简化启动EasyConnect时的操作，fix脚本修改该文件并将执行前述辅助启动脚本的命令写入（修改操作需要权限），这样就可在启动器以常规方式启动EasyConnect，无需终端运行脚本。
 
 ## 声明
 
